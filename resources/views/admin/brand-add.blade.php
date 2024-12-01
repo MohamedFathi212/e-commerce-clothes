@@ -2,7 +2,8 @@
 @section('content')
 <div class="main-content-inner">
     <div class="main-content-wrap">
-        <h3>New Brand</h3>
+        <h3>New Brand</h3><br><br>
+
         <div class="wg-box">
             <form action="{{ route('admin.brand.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf

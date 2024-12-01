@@ -7,6 +7,12 @@ use Illuminate\Support\Str;
 
 class AdminController extends Controller
 {
+
+    public function index()
+    {
+        return view('admin.index');
+    }
+
     public function brands()
     {
         $brands = Brand::orderBy('id', 'DESC')->paginate(10);
@@ -38,6 +44,6 @@ class AdminController extends Controller
 
         $brand->save();
 
-        return redirect()->route('admin.brands')->with('status', 'Brand added successfully!');
+        return redirect()->route('admin.brands')->with('status', 'Brand  has been added successfully!');
     }
 }
