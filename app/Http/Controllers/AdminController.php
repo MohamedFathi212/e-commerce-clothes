@@ -1,8 +1,10 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Brand;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
 class AdminController extends Controller
@@ -37,13 +39,70 @@ class AdminController extends Controller
         $brand->slug = Str::slug($request->name);
 
         if ($request->hasFile('image')) {
-            $file_name = time() . '.' . $request->image->extension();
-            $request->image->move(public_path('uploads/brands'), $file_name);
-            $brand->image = $file_name;
+            // الحصول على الاسم الأصلي للملف
+            $originalName = pathinfo($request->image->getClientOriginalName(), PATHINFO_FILENAME);
+            // إزالة المسافات أو الأحرف غير المسموح بها
+            $fileName = Str::slug($originalName) . '.' . $request->image->extension();
+            // التأكد من أن الاسم فريد
+            $fileName = uniqid() . '_' . $fileName;
+            // نقل الملف إلى المسار
+            $request->image->move(public_path('uploads/brands'), $fileName);
+            $brand->image = $fileName;
         }
 
         $brand->save();
+        return redirect()->route('admin.brands')->with('status', 'Brand has been added successfully!');
+    }
 
-        return redirect()->route('admin.brands')->with('status', 'Brand  has been added successfully!');
+    public function brand_edit($id)
+    {
+        $brand = Brand::find($id);
+        return view('admin.brand-edit', compact('brand'));
+    }
+
+    public function brand_update(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:brands,id',
+            'name' => 'required|string|max:255',
+            'slug' => 'required|string|max:255|unique:brands,slug,' . $request->id,
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        $brand = Brand::find($request->id);
+        $brand->name = $request->name;
+        $brand->slug = $request->slug;
+
+        // معالجة الصورة
+        if ($request->hasFile('image')) {
+            // حذف الصورة القديمة إن وجدت
+            if ($brand->image && file_exists(public_path('uploads/brands/' . $brand->image))) {
+                unlink(public_path('uploads/brands/' . $brand->image));
+            }
+
+            // الحصول على الاسم الأصلي للملف
+            $originalName = pathinfo($request->image->getClientOriginalName(), PATHINFO_FILENAME);
+            // تنظيف الاسم
+            $fileName = Str::slug($originalName) . '.' . $request->image->extension();
+            // التأكد من أن الاسم فريد
+            $fileName = uniqid() . '_' . $fileName;
+            // نقل الملف إلى المسار
+            $request->image->move(public_path('uploads/brands'), $fileName);
+            $brand->image = $fileName;
+        }
+
+        $brand->save();
+        return redirect()->route('admin.brands')->with('status', 'Brand has been updated successfully!');
+    }
+
+    public function brand_delete($id) {
+        $brand = Brand::find($id);
+
+        if(File::exists(public_path('uploads/brands').'/'.$brand->image))
+        {
+            File::delete(public_path('uploads/brands').'/'.$brand->image);
+        }
+        $brand->delete();
+        return redirect()->route('admin.brands')->with('status', 'Brand has been Deleted successfully!');
     }
 }

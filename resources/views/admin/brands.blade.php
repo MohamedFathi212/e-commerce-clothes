@@ -35,7 +35,7 @@
             <div class="wg-table table-all-user">
                 <div class="table-responsive">
                     @if(Session::has('status'))
-                        <p class="alert alert-success">{{Session::get('status')}}</p>
+                    <p class="alert alert-success">{{Session::get('status')}}</p>
                     @endif
                     <table class="table table-striped table-bordered">
                         <thead>
@@ -56,19 +56,27 @@
                                 <td>
                                     <div class="image">
                                         @if($brand->image)
-                                            <img src="{{ asset('uploads/brands/' . $brand->image) }}" alt="{{ $brand->name }}" style="width: 50px; height: 50px; object-fit: cover;">
+                                        <img src="{{ asset('uploads/brands/' . $brand->image) }}" alt="{{ $brand->name }}" style="width: 50px; height: 50px; object-fit: cover;">
                                         @else
-                                            <span>No Image</span>
+                                        <span>No Image</span>
                                         @endif
                                     </div>
                                 </td>
                                 <td>
-                                    <a href="#"><i class="icon-edit-3"></i></a>
-                                    <form action="#" method="POST" style="display:inline;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-danger"><i class="icon-trash-2"></i></button>
-                                    </form>
+                                    <div class="list-icon-function">
+                                        <a href="{{ route('admin.brand.edit', ['id' => $brand->id]) }}">
+                                            <div class="item edit">
+                                                <i class="icon-edit-3"></i>
+                                            </div>
+                                        </a>
+                                        <form action="{{ route('admin.brand.delete', ['id' => $brand->id]) }}" method="POST" style="display:inline;">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="delete text-danger">
+                                                <i class="icon-trash-2"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                             @endforeach
@@ -83,3 +91,29 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(function(){
+            $('.delete').on('click', function(e){
+                e.preventDefault();
+                var form = $(this).closest('form');
+                Swal.fire({
+                    title: "Are you sure?",
+                    text: "You want to delete this record?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: "Yes",
+                    cancelButtonText: "No"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
+@endpush
