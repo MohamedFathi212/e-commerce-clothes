@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Brand;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -105,4 +106,48 @@ class AdminController extends Controller
         $brand->delete();
         return redirect()->route('admin.brands')->with('status', 'Brand has been Deleted successfully!');
     }
+
+    public function categories()
+    {
+        $categories = Category::orderBy('id', 'DESC')->paginate(10);
+        return view('admin.categories', compact('categories'));
+    }
+
+
+    public function category_add()
+    {
+        return view('admin.category-add');
+    }
+
+
+    public function category_store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required',
+            'slug' => 'required|unique:brands,slug',
+            'image' => 'nullable|mimes:png,jpg,jpeg|max:2048',
+        ]);
+
+        $category = new Category();
+        $category->name = $request->name;
+        $category->slug = Str::slug($request->name);
+
+        if ($request->hasFile('image')) {
+            // الحصول على الاسم الأصلي للملف
+            $originalName = pathinfo($request->image->getClientOriginalName(), PATHINFO_FILENAME);
+            // إزالة المسافات أو الأحرف غير المسموح بها
+            $fileName = Str::slug($originalName) . '.' . $request->image->extension();
+            // التأكد من أن الاسم فريد
+            $fileName = uniqid() . '_' . $fileName;
+            // نقل الملف إلى المسار
+            $request->image->move(public_path('uploads/categories'), $fileName);
+            $category->image = $fileName;
+        }
+
+        $category->save();
+        return redirect()->route('admin.categories')->with('status', 'Category has been added successfully!');
+    }
+
+
+
 }
