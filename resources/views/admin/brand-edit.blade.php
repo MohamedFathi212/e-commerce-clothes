@@ -23,14 +23,15 @@
                 </fieldset>
                 <fieldset class="form-field">
                     <div class="field-label">Upload Image <span>*</span></div>
-                    <div id="dropzone" class="dropzone-container">
-                        <div class="dropzone-text">Drag and drop an image here or click to select</div>
-                        <input type="file" id="myFile" name="image" accept="image/*" class="file-input" style="display: none;">
+                    <div id="dropzone" class="dropzone-container" onclick="document.getElementById('myFile').click()">
                         <div id="imgpreview" class="image-preview">
                             @if(isset($brand) && $brand->image)
-                            <img src="{{ asset('uploads/brands/' . $brand->image) }}" style="width: 100px; height: 100px; object-fit: cover;" alt="Preview">
+                            <img src="{{ asset('uploads/brands/' . $brand->image) }}" style="width: 100%; height: 100%; object-fit: cover;" alt="Preview">
+                            @else
+                            <span class="dropzone-text">Click to upload an image</span>
                             @endif
                         </div>
+                        <input type="file" id="myFile" name="image" accept="image/*" class="file-input" style="display: none;">
                     </div>
                     @error('image')
                     <span class="alert alert-danger">{{ $message }}</span>
@@ -87,6 +88,10 @@
         overflow: hidden;
     }
 
+    .dropzone-container:hover {
+        border-color: #007bff;
+    }
+
     .dropzone-text {
         text-align: center;
         font-size: 14px;
@@ -105,6 +110,7 @@
         border-radius: 5px;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
+
 
     .submit-button {
         background-color: #007bff;
@@ -144,18 +150,17 @@
             $("input[name='slug']").val(slugValue);
         });
 
-        // معاينة الصورة عند اختيار ملف أو سحب الملف
-        $('#myFile').on('change', function() {
-            const [file] = this.files;
-            if (file) {
-                const imgPreview = `<img src="${URL.createObjectURL(file)}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">`;
-                $('#imgpreview').html(imgPreview).show();
-            }
-        });
+        document.getElementById('myFile').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById('imgpreview');
 
-        // تحسين تجربة السحب والإفلات
-        $('#dropzone').on('click', function() {
-            $('#myFile').click(); // عند الضغط على العبارة أو المنطقة، يتم فتح نافذة اختيار الملف
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;" alt="Preview">`;
+                };
+                reader.readAsDataURL(file);
+            }
         });
 
         $('#dropzone').on('dragover', function(e) {
@@ -172,7 +177,7 @@
             const files = e.originalEvent.dataTransfer.files;
             if (files.length) {
                 $('#myFile')[0].files = files;
-                const imgPreview = `<img src="${URL.createObjectURL(files[0])}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">`;
+                const imgPreview = `<img src="${URL.createObjectURL(files[0])}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">`;
                 $('#imgpreview').html(imgPreview).show();
             }
         });

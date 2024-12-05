@@ -96,12 +96,12 @@ class AdminController extends Controller
         return redirect()->route('admin.brands')->with('status', 'Brand has been updated successfully!');
     }
 
-    public function brand_delete($id) {
+    public function brand_delete($id)
+    {
         $brand = Brand::find($id);
 
-        if(File::exists(public_path('uploads/brands').'/'.$brand->image))
-        {
-            File::delete(public_path('uploads/brands').'/'.$brand->image);
+        if (File::exists(public_path('uploads/brands') . '/' . $brand->image)) {
+            File::delete(public_path('uploads/brands') . '/' . $brand->image);
         }
         $brand->delete();
         return redirect()->route('admin.brands')->with('status', 'Brand has been Deleted successfully!');
@@ -148,6 +148,59 @@ class AdminController extends Controller
         return redirect()->route('admin.categories')->with('status', 'Category has been added successfully!');
     }
 
+    public function category_edit($id)
+    {
+        $category = Category::find($id);
+        return view('admin.category-edit', compact('category'));
+    }
 
+
+    public function category_update(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'slug' => 'required|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        try {
+            $category = Category::findOrFail($request->id);
+
+            // تحديث الحقول
+            $category->name = $request->name;
+            $category->slug = $request->slug;
+
+            // تحديث الصورة إذا تم رفعها
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $imageName = time() . '_' . $image->getClientOriginalName();
+                $image->move(public_path('uploads/categories'), $imageName);
+
+                // حذف الصورة القديمة إذا كانت موجودة
+                if ($category->image && file_exists(public_path('uploads/categories/' . $category->image))) {
+                    unlink(public_path('uploads/categories/' . $category->image));
+                }
+
+                $category->image = $imageName;
+            }
+
+            $category->save();
+
+            return redirect()->route('admin.categories')->with('status', 'Category updated successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'An error occurred: ' . $e->getMessage());
+        }
+    }
+
+    public function category_delete($id)
+    {
+        $category = Category::find($id);
+
+        if (File::exists(public_path('uploads/categories') . '/' . $category->image)) {
+            File::delete(public_path('uploads/categories') . '/' . $category->image);
+        }
+        $category->delete();
+        return redirect()->route('admin.categories')->with('status', 'Category has been Deleted successfully!');
+    }
 
 }

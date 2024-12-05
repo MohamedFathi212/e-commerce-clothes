@@ -2,21 +2,24 @@
 @section('content')
 <div class="main-content-inner">
     <div class="main-content-wrap">
-        <h3>New Category</h3><br><br>
+        <h3>Edit Category</h3><br><br>
 
         <div class="wg-box">
-            <form action="{{ route('admin.category.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('admin.category.update') }}" method="POST" enctype="multipart/form-data">
                 @csrf
+                @method('PUT')
+                <input type="hidden" name="id" value="{{ $category->id }}">
                 <fieldset class="form-field">
                     <div class="field-label">Category Name <span>*</span></div>
-                    <input type="text" name="name" value="{{ old('name') }}" required class="form-input">
+                    <input type="text" name="name" value="{{ old('name', $category->name) }}" required class="form-input">
                     @error('name')
                     <span class="alert alert-danger">{{ $message }}</span>
                     @enderror
                 </fieldset>
+
                 <fieldset class="form-field">
                     <div class="field-label">Category Slug <span>*</span></div>
-                    <input type="text" name="slug" value="{{ old('slug') }}" required class="form-input">
+                    <input type="text" name="slug" value="{{ old('slug', $category->slug) }}" required class="form-input">
                     @error('slug')
                     <span class="alert alert-danger">{{ $message }}</span>
                     @enderror
@@ -39,7 +42,7 @@
                     @enderror
                 </fieldset>
 
-                <button type="submit" class="submit-button">Save</button>
+                <button type="submit" class="submit-button">Update</button>
             </form>
         </div>
     </div>
@@ -145,9 +148,9 @@
         // تحديث حقل slug تلقائيًا بناءً على الاسم
         $("input[name='name']").on("input", function() {
             const nameValue = $(this).val();
-            const slugValue = nameValue.toLowerCase() // تحويل إلى حروف صغيرة
-                .replace(/[^\w\s-]/g, '') // إزالة الأحرف غير المسموح بها
-                .replace(/\s+/g, '-'); // استبدال الفراغات بشرطة "-"
+            const slugValue = nameValue.toLowerCase()
+                .replace(/[^\w\s-]/g, '')
+                .replace(/\s+/g, '-');
             $("input[name='slug']").val(slugValue);
         });
 
@@ -183,6 +186,5 @@
             }
         });
     });
-
 </script>
 @endpush
